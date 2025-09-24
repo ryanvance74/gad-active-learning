@@ -30,7 +30,7 @@ def get_next_point(V, X, optimality):
 def sherman_update(V, b):
     Vb = V @ b
     Vb /= np.sqrt(1. + np.inner(b, Vb))
-    return  V - np.outer(Vb, Vb) # am I missing the denominator?
+    return  V - np.outer(Vb, Vb) 
     # V @ b @ b.T @ V
     # num = Vb @ Vb.T
     # den = 1 + np.inner(b, Vb)
