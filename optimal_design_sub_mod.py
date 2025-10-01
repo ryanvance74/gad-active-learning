@@ -66,7 +66,8 @@ def greedy_sub_mod(dataset, k, eps, optimality):
     return A, indices
 
 def run_simulation_greedy_sub_mod(
-        M: np.ndarray, 
+        M_modeled: np.ndarray, 
+        y: np.ndarray,
         obs_set: np.ndarray,
         ctrue: np.ndarray,
         nstart: int,
@@ -77,14 +78,14 @@ def run_simulation_greedy_sub_mod(
     """
     res = {'chat':[], 'c_err':[], 'errs':[], 'MTMinv_norm':[], 'runtime':[]}
     start_time = time.perf_counter()
-    if obs_set is not None:
-        MTM = M[:,obs_set]
-    else:
-        MTM = M
+    # if obs_set is not None:
+    #     MTM = M[:,obs_set]
+    # else:
+    #     MTM = M
 
-    y = M @ ctrue
+    # y = M @ ctrue
 
-    samples, indices = greedy_sub_mod(MTM,ntotal,0.001, optimality)
+    samples, indices = greedy_sub_mod(M_modeled,ntotal,0.001, optimality)
 
     for i in range(nstart,ntotal+1):
         # print("Calculating OD weights for: ", i, " samples")
@@ -95,12 +96,13 @@ def run_simulation_greedy_sub_mod(
         
         sol = np.linalg.lstsq(MTM_sampled, y_sampled, rcond=None)
 
-        chat = np.zeros_like(ctrue, dtype=float)
-        chat[obs_set] = sol[0]
-
+        # chat = np.zeros_like(ctrue, dtype=float)
+        chat = sol[0]
+        
         res['chat'].append(chat)
-        res['c_err'].append(np.linalg.norm(ctrue-chat))
-        res['errs'].append(np.linalg.norm(M@(ctrue - chat)))
+        # res['c_err'].append(np.linalg.norm(ctrue-chat))
+        # print(y_sampled.shape, M_modeled.shape, chat.shape)
+        res['errs'].append(np.linalg.norm(y - M_modeled @ chat))
         try: 
             Minv = np.linalg.pinv(MTM_sampled)
             res['MTMinv_norm'].append(np.linalg.norm(Minv,ord=2))
